@@ -1,0 +1,23 @@
+
+# Created by Lukas Willin
+# With help of gitignore-plugin installed in IntelliJ Idea
+
+# Folders
+.idea/
+.git/
+.settings/
+.bin/
+.metadata/
+target/
+classes/
+javadoc/
+
+# Files
+log.txt
+config.txt
+.classpath
+.project
+
+# File endings
+
+*.iml

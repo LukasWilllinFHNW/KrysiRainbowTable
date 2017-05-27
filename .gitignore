@@ -6,7 +6,7 @@
 .idea/
 .git/
 .settings/
-.bin/
+bin/
 .metadata/
 target/
 classes/

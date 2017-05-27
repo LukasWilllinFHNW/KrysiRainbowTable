@@ -1,3 +1,4 @@
+import java.math.BigInteger;
 import java.security.MessageDigest;
 
 public class MD5 {
@@ -6,20 +7,29 @@ public class MD5 {
 
 		String returnString = new String();
 		try {
-			byte[] bytesOfMessage = s.getBytes("UTF-8");
-
 			MessageDigest md = MessageDigest.getInstance("MD5");
-			byte[] digest = md.digest(bytesOfMessage);
-			// returnString= new String(digest);
-			StringBuffer sb = new StringBuffer();
-			for (int i = 0; i < digest.length; i++) {
-				sb.append(Integer.toHexString((digest[i] & 0xFF) | 0x100).substring(1, 3));
-			}
-			return sb.toString();
+			md.reset();
+			byte[] md5Digest = md.digest(s.getBytes("utf-8"));
+			return new BigInteger(1, md5Digest).toString(16);
 		} catch (Exception e) {
 			System.err.println("MD5 hashing fails");
 		}
 		return returnString;
 	}
-
+	
+	/**
+	 * Test Method
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		String test = "ooo";
+		String result = "7f94dd413148ff9ac9e9e4b6ff2b6ca9";
+		System.out.println("Output for "+test+" should be "+ result );
+		System.out.println(new MD5().makeMD5Hash(test).equals(result));
+		
+		test = "dues6fg";
+		result = "c0e9a2f2ae2b9300b6f7ef3e63807e84";
+		System.out.println("Output for "+test+" should be "+ result );
+		System.out.println(new MD5().makeMD5Hash(test).equals(result));
+	}
 }

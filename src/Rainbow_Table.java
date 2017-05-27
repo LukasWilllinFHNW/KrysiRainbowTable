@@ -1,3 +1,4 @@
+import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -6,6 +7,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 public class Rainbow_Table {
@@ -23,45 +25,97 @@ public class Rainbow_Table {
 	public Map<String, String> fillrainbowTable(List<String> passwords, MD5 md5,
 			Reduktionsfunktion reduktionsfunktion) {
 
-		// TODO Fehler finden (wahrscheinlich liegt es daran, dass der Wert, der in
+		// TODOdone Fehler finden (wahrscheinlich liegt es daran, dass der Wert, der in
 		// die methode Integer.parseInt(endWert, 16)
 		// reinkommt, keine Hexzahl ist.
-		// Doch doch ist einer :) Aber zu lange / gross
+		// Doch doch ist einer :) Aber zu lange / gross -> BigInteger
 		fillHashTable(passwords, md5);
-		for (String startWert : hashTable.keySet()) {
-			String endWert = "";
+		for (String startWert : hashTable.keySet()) { // KeySet = passwörter
+			String endWert = ""; //String startWert = "0000000";
 			endWert = md5.makeMD5Hash(startWert);
-			for (int i = 0; i < 7; i++) {
-				//System.out.println(new BigInteger(endWert, 16));
-				//System.out.println("7fffffff" );//endWert.toCharArray());
-				//System.out.println(Integer.parseInt("7fffffff", 16));//Integer.parseInt(endWert, 16));
-				endWert = reduktionsfunktion.reduktionsfunktion(new BigInteger(endWert, 16), i);
+			//System.out.println("hash0 "+endWert);
+			for (int i = 0; i < 50; i++) {
+				try {
+					endWert = reduktionsfunktion.reduktionsfunktion(endWert, i);
+					//System.out.println("r"+i+" "+endWert);
+					endWert = md5.makeMD5Hash(endWert);
+					//System.out.println("hash"+(i-1)+" "+ endWert);
+				} catch(NumberFormatException e) {
+					e.printStackTrace();
+				}
+
 			}
 			rainbowTable.put(startWert, endWert);
 		}
 		return new HashMap<>(rainbowTable);
 	}
 
-	public String findPassword(Reduktionsfunktion reduktionsfunktion, String pwd) {
-		// TODO der letzte Schritt
-		return null;
+	/**@param reduktionsfunktion
+	 * @param hashOfPassword : A HexaDecimal hash like md5
+	 * @return
+	 */
+	public String findPassword(final Reduktionsfunktion reduktionsfunktion, final String hashOfPassword) {
+		String password = "No password found for hash "+hashOfPassword;
+		String gefundenerEndWert = null;
+		
+		// Finde den Endwert für gegebenen hash
+		for(int i = 2000-1; i >= 0 && gefundenerEndWert == null; i--) {
+			MD5 md5 = new MD5();
+			String tmpHash = hashOfPassword;
+			String reduktion = null;
+			for(int j = i; j < 2000; j++) {
+				reduktion = reduktionsfunktion.reduktionsfunktion(tmpHash, j);
+				tmpHash = md5.makeMD5Hash(reduktion);
+			}
+			if(rainbowTable.values().contains(tmpHash)) {
+				gefundenerEndWert = reduktion;
+			}
+		}
+		
+		final String finalEndWert = gefundenerEndWert;
+		List<Entry<String, String>> list = rainbowTable.entrySet().stream()
+				.filter(e -> e.getValue().equals(finalEndWert))
+				.collect(Collectors.toList());
+		
+		if(!list.isEmpty()) {
+			// Finde den startWert zum gefundenen Endwert
+			
+			String startWert = list.get(0).getKey();
+			List<String> kette = new ArrayList<>(200);
+			kette.add(startWert);
+			MD5 md5 = new MD5();
+			
+			// Baue die Kette neu auf
+			for(int i = 0; i < 2000; i++) {
+				kette.add(md5.makeMD5Hash(kette.get(kette.size()-1)));
+				kette.add(reduktionsfunktion.reduktionsfunktion(kette.get(kette.size()-1), i));
+			}
+			
+			// Suche nach dem passenden Eintrag
+			int lastIndexOf = kette.lastIndexOf(hashOfPassword);
+			// Wenn gefunden wähle den Wert vor diesem Index
+			if(lastIndexOf > -1) {
+				password = kette.get(lastIndexOf-1);
+			}
+		}
+		
+		return password;
 	}
 
 	public static void main(String[] args) {
-		// MD5 md5 = new MD5();
 		String hashValueGiven = "1d56a37fb6b08aa709fe90e12ca59e12";
-		// String s = md5.makeMD5Hash(hashValueGiven);
-		// System.out.println(s);
 
 		Rainbow_Table rt = new Rainbow_Table();
+		Reduktionsfunktion r = new Reduktionsfunktion();
 		Map<String, String> rainbowTable = rt.fillrainbowTable(
 				new PasswordGenerator(2000, 7).getGeneratedPasswords(),
 				new MD5(), // md5,
-				new Reduktionsfunktion());
-				
-		for (String val : rainbowTable.values()) {
-			System.out.println(val);
-		}
+				r);
+		
+//		System.out.println(rainbowTable.keySet().iterator().next());
+//		System.out.println(rainbowTable.values().iterator().next());
+		
+		System.out.println(rt.findPassword(r, "1d56a37fb6b08aa709fe90e12ca59e12"));
 	}
 
 }

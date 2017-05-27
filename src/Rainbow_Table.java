@@ -30,7 +30,7 @@ public class Rainbow_Table {
 		// reinkommt, keine Hexzahl ist.
 		// Doch doch ist einer :) Aber zu lange / gross -> BigInteger
 		fillHashTable(passwords, md5);
-		for (String startWert : hashTable.keySet()) { // KeySet = passwˆrter
+		for (String startWert : hashTable.keySet()) { // KeySet = passw√∂rter
 			String endWert = ""; //String startWert = "0000000";
 			endWert = md5.makeMD5Hash(startWert);
 			//System.out.println("hash0 "+endWert);
@@ -58,7 +58,7 @@ public class Rainbow_Table {
 		String password = "No password found for hash "+hashOfPassword;
 		String gefundenerEndWert = null;
 		
-		// Finde den Endwert f¸r gegebenen hash
+		// Finde den Endwert f√ºr gegebenen hash
 		for(int i = 2000-1; i >= 0 && gefundenerEndWert == null; i--) {
 			MD5 md5 = new MD5();
 			String tmpHash = hashOfPassword;
@@ -72,6 +72,7 @@ public class Rainbow_Table {
 			}
 		}
 		
+		// TODO Fehler: Die Liste mit m√∂glichen start und end werten ist empty
 		final String finalEndWert = gefundenerEndWert;
 		List<Entry<String, String>> list = rainbowTable.entrySet().stream()
 				.filter(e -> e.getValue().equals(finalEndWert))
@@ -93,7 +94,7 @@ public class Rainbow_Table {
 			
 			// Suche nach dem passenden Eintrag
 			int lastIndexOf = kette.lastIndexOf(hashOfPassword);
-			// Wenn gefunden w‰hle den Wert vor diesem Index
+			// Wenn gefunden w√§hle den Wert vor diesem Index
 			if(lastIndexOf > -1) {
 				password = kette.get(lastIndexOf-1);
 			}

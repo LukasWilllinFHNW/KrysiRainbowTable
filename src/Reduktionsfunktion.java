@@ -22,8 +22,8 @@ public class Reduktionsfunktion {
 	
 	public static void main(String[] args) {
 		Reduktionsfunktion reduktionsfunktion = new Reduktionsfunktion();
-		String hash = reduktionsfunktion.reduktionsfunktion("12345", 0);
-		System.out.println(hash);
+		String reduktion = reduktionsfunktion.reduktionsfunktion("12345", 0);
+		System.out.println(reduktion);
 	}
 
 }

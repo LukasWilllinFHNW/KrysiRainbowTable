@@ -31,15 +31,17 @@ public class Rainbow_Table {
 		// Doch doch ist einer :) Aber zu lange / gross -> BigInteger
 		fillHashTable(passwords, md5);
 		for (String startWert : hashTable.keySet()) { // KeySet = passw√∂rter
-			String endWert = ""; //String startWert = "0000000";
-			endWert = md5.makeMD5Hash(startWert);
+			String endWert = startWert;
+			// endWert = md5.makeMD5Hash(startWert);
 			//System.out.println("hash0 "+endWert);
-			for (int i = 0; i < 50; i++) {
+			for (int i = 0; i < 2000; i++) {
 				try {
-					endWert = reduktionsfunktion.reduktionsfunktion(endWert, i);
+					//endWert = reduktionsfunktion.reduktionsfunktion(endWert, i);
 					//System.out.println("r"+i+" "+endWert);
 					endWert = md5.makeMD5Hash(endWert);
 					//System.out.println("hash"+(i-1)+" "+ endWert);
+					endWert = reduktionsfunktion.reduktionsfunktion(endWert, i);
+					//System.out.println("r"+i+" "+endWert);
 				} catch(NumberFormatException e) {
 					e.printStackTrace();
 				}
@@ -57,34 +59,32 @@ public class Rainbow_Table {
 	public String findPassword(final Reduktionsfunktion reduktionsfunktion, final String hashOfPassword) {
 		String password = "No password found for hash "+hashOfPassword;
 		String gefundenerEndWert = null;
-		
-		// Finde den Endwert f√ºr gegebenen hash
+		MD5 md5 = new MD5();
+		// Finde den Endwert f¸r gegebenen hash
 		for(int i = 2000-1; i >= 0 && gefundenerEndWert == null; i--) {
-			MD5 md5 = new MD5();
 			String tmpHash = hashOfPassword;
+			
 			String reduktion = null;
 			for(int j = i; j < 2000; j++) {
 				reduktion = reduktionsfunktion.reduktionsfunktion(tmpHash, j);
 				tmpHash = md5.makeMD5Hash(reduktion);
 			}
-			if(rainbowTable.values().contains(tmpHash)) {
+			if(reduktion != null && rainbowTable.values().contains(reduktion)) {
 				gefundenerEndWert = reduktion;
 			}
 		}
 		
-		// TODO Fehler: Die Liste mit m√∂glichen start und end werten ist empty
-		final String finalEndWert = gefundenerEndWert;
+		// TODO Fehler: Die Liste mit mˆglichen start und end werten ist empty
+		final String finalizedEndWert = gefundenerEndWert;
 		List<Entry<String, String>> list = rainbowTable.entrySet().stream()
-				.filter(e -> e.getValue().equals(finalEndWert))
+				.filter(e -> e.getValue().equals(finalizedEndWert))
 				.collect(Collectors.toList());
 		
 		if(!list.isEmpty()) {
 			// Finde den startWert zum gefundenen Endwert
-			
 			String startWert = list.get(0).getKey();
 			List<String> kette = new ArrayList<>(200);
 			kette.add(startWert);
-			MD5 md5 = new MD5();
 			
 			// Baue die Kette neu auf
 			for(int i = 0; i < 2000; i++) {
@@ -94,7 +94,7 @@ public class Rainbow_Table {
 			
 			// Suche nach dem passenden Eintrag
 			int lastIndexOf = kette.lastIndexOf(hashOfPassword);
-			// Wenn gefunden w√§hle den Wert vor diesem Index
+			// Wenn gefunden w‰hle den Wert vor diesem Index
 			if(lastIndexOf > -1) {
 				password = kette.get(lastIndexOf-1);
 			}

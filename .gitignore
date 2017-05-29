@@ -7,6 +7,7 @@
 .git/
 .settings/
 bin/
+out/
 .metadata/
 target/
 classes/

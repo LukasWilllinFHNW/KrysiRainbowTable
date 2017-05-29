@@ -22,7 +22,7 @@ public class Rainbow_Table {
 		return new HashMap<>(hashTable);
 	}
 
-	public Map<String, String> fillrainbowTable(List<String> passwords, MD5 md5,
+	public void fillrainbowTable(List<String> passwords, MD5 md5,
 			Reduktionsfunktion reduktionsfunktion) {
 
 		// TODOdone Fehler finden (wahrscheinlich liegt es daran, dass der Wert, der in
@@ -30,26 +30,19 @@ public class Rainbow_Table {
 		// reinkommt, keine Hexzahl ist.
 		// Doch doch ist einer :) Aber zu lange / gross -> BigInteger
 		fillHashTable(passwords, md5);
+		System.out.println("HashTable build finished");
 		for (String startWert : hashTable.keySet()) { // KeySet = passw√∂rter
 			String endWert = startWert;
-			// endWert = md5.makeMD5Hash(startWert);
-			//System.out.println("hash0 "+endWert);
 			for (int i = 0; i < 2000; i++) {
 				try {
-					//endWert = reduktionsfunktion.reduktionsfunktion(endWert, i);
-					//System.out.println("r"+i+" "+endWert);
-					endWert = md5.makeMD5Hash(endWert);
-					//System.out.println("hash"+(i-1)+" "+ endWert);
-					endWert = reduktionsfunktion.reduktionsfunktion(endWert, i);
-					//System.out.println("r"+i+" "+endWert);
+					endWert = reduktionsfunktion.reduktionsfunktion(md5.makeMD5Hash(endWert), i);
 				} catch(NumberFormatException e) {
 					e.printStackTrace();
 				}
-
 			}
 			rainbowTable.put(startWert, endWert);
 		}
-		return new HashMap<>(rainbowTable);
+		System.out.println("RainbowTable build finished");
 	}
 
 	/**@param reduktionsfunktion
@@ -57,22 +50,24 @@ public class Rainbow_Table {
 	 * @return
 	 */
 	public String findPassword(final Reduktionsfunktion reduktionsfunktion, final String hashOfPassword) {
+		System.out.println("Began searching for password with hash "+hashOfPassword);
 		String password = "No password found for hash "+hashOfPassword;
 		String gefundenerEndWert = null;
-		MD5 md5 = new MD5();
+		final MD5 md5 = new MD5();
 		// Finde den Endwert f¸r gegebenen hash
 		for(int i = 2000-1; i >= 0 && gefundenerEndWert == null; i--) {
 			String tmpHash = hashOfPassword;
-			
 			String reduktion = null;
+			// Die Kette neu aufbauen von i bis 2000
 			for(int j = i; j < 2000; j++) {
 				reduktion = reduktionsfunktion.reduktionsfunktion(tmpHash, j);
 				tmpHash = md5.makeMD5Hash(reduktion);
 			}
-			if(reduktion != null && rainbowTable.values().contains(reduktion)) {
+			if(reduktion != null && rainbowTable.values().contains(reduktion))
 				gefundenerEndWert = reduktion;
-			}
 		}
+		
+		System.out.println("Found end value: "+gefundenerEndWert);
 		
 		// TODO Fehler: Die Liste mit mˆglichen start und end werten ist empty
 		final String finalizedEndWert = gefundenerEndWert;
@@ -80,23 +75,28 @@ public class Rainbow_Table {
 				.filter(e -> e.getValue().equals(finalizedEndWert))
 				.collect(Collectors.toList());
 		
+		System.out.println("Start-End-value pairs have been found ? " + (!list.isEmpty()));
+		
 		if(!list.isEmpty()) {
 			// Finde den startWert zum gefundenen Endwert
 			String startWert = list.get(0).getKey();
-			List<String> kette = new ArrayList<>(200);
-			kette.add(startWert);
 			
 			// Baue die Kette neu auf
+			List<String> kette = new ArrayList<>(200);
+			kette.add(startWert);
 			for(int i = 0; i < 2000; i++) {
 				kette.add(md5.makeMD5Hash(kette.get(kette.size()-1)));
 				kette.add(reduktionsfunktion.reduktionsfunktion(kette.get(kette.size()-1), i));
 			}
+			
+			System.out.println("Rebuild the chain");
 			
 			// Suche nach dem passenden Eintrag
 			int lastIndexOf = kette.lastIndexOf(hashOfPassword);
 			// Wenn gefunden w‰hle den Wert vor diesem Index
 			if(lastIndexOf > -1) {
 				password = kette.get(lastIndexOf-1);
+				System.out.println("Passord "+password+" found");
 			}
 		}
 		
@@ -108,13 +108,10 @@ public class Rainbow_Table {
 
 		Rainbow_Table rt = new Rainbow_Table();
 		Reduktionsfunktion r = new Reduktionsfunktion();
-		Map<String, String> rainbowTable = rt.fillrainbowTable(
+		rt.fillrainbowTable(
 				new PasswordGenerator(2000, 7).getGeneratedPasswords(),
 				new MD5(), // md5,
 				r);
-		
-//		System.out.println(rainbowTable.keySet().iterator().next());
-//		System.out.println(rainbowTable.values().iterator().next());
 		
 		System.out.println(rt.findPassword(r, "1d56a37fb6b08aa709fe90e12ca59e12"));
 	}

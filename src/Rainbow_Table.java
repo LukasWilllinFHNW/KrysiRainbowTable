@@ -69,7 +69,7 @@ public class Rainbow_Table {
 		
 		System.out.println("Found end value: "+gefundenerEndWert);
 		
-		// TODO Fehler: Die Liste mit möglichen start und end werten ist empty
+		// Suche nach Start-End-Wertpaaren in der RainbowTable
 		final String finalizedEndWert = gefundenerEndWert;
 		List<Entry<String, String>> list = rainbowTable.entrySet().stream()
 				.filter(e -> e.getValue().equals(finalizedEndWert))
